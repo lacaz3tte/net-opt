@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NetworkOptimizer.Probes</RootNamespace>
+    <AssemblyName>NetworkOptimizer.Probes</AssemblyName>
+    <Description>YouTube and Discord layered connectivity probes.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkOptimizer.Core\NetworkOptimizer.Core.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Network\NetworkOptimizer.Network.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NetworkOptimizer.Tests" />
+  </ItemGroup>
+</Project>

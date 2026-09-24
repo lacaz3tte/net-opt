@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>NetworkOptimizer.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkOptimizer.Core\NetworkOptimizer.Core.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Network\NetworkOptimizer.Network.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Probes\NetworkOptimizer.Probes.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Strategies\NetworkOptimizer.Strategies.csproj" />
+  </ItemGroup>
+</Project>

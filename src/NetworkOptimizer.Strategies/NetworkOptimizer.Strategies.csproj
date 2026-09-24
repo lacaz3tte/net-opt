@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NetworkOptimizer.Strategies</RootNamespace>
+    <AssemblyName>NetworkOptimizer.Strategies</AssemblyName>
+    <Description>Independent network strategies for the optimizer engine.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkOptimizer.Core\NetworkOptimizer.Core.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Network\NetworkOptimizer.Network.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NetworkOptimizer.Tests" />
+  </ItemGroup>
+</Project>

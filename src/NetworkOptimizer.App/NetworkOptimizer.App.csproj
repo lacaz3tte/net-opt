@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>false</UseWindowsForms>
+    <RootNamespace>NetworkOptimizer.App</RootNamespace>
+    <AssemblyName>NetworkOptimizer</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishAot>false</PublishAot>
+    <StartupObject>NetworkOptimizer.App.Program</StartupObject>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <ApplicationIcon />
+    <Description>Network Optimizer — automatic local network configuration search for YouTube and Discord.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkOptimizer.Core\NetworkOptimizer.Core.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Network\NetworkOptimizer.Network.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Probes\NetworkOptimizer.Probes.csproj" />
+    <ProjectReference Include="..\NetworkOptimizer.Strategies\NetworkOptimizer.Strategies.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\config\appsettings.json" Link="config\appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

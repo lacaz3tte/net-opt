@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NetworkOptimizer.Core</RootNamespace>
+    <AssemblyName>NetworkOptimizer.Core</AssemblyName>
+    <Description>Core engine, models, persistence, and scoring for Network Optimizer.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NetworkOptimizer.Tests" />
+  </ItemGroup>
+</Project>
