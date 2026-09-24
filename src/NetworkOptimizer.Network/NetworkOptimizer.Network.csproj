@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NetworkOptimizer.Network</RootNamespace>
+    <AssemblyName>NetworkOptimizer.Network</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>Discovery and local Windows network configuration adapters.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkOptimizer.Core\NetworkOptimizer.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NetworkOptimizer.Tests" />
+  </ItemGroup>
+</Project>

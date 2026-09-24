@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{73638D93-7C51-45E3-8206-2633A61519C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkOptimizer.Core", "src\NetworkOptimizer.Core\NetworkOptimizer.Core.csproj", "{443A0FAB-6EB7-4C93-8EB6-6475C62BA9C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkOptimizer.Network", "src\NetworkOptimizer.Network\NetworkOptimizer.Network.csproj", "{E375E672-AF9E-4BB8-B370-FA39106BD102}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkOptimizer.Probes", "src\NetworkOptimizer.Probes\NetworkOptimizer.Probes.csproj", "{BE43FDC2-22B5-46F6-8A7A-16CB14F0ACA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkOptimizer.Strategies", "src\NetworkOptimizer.Strategies\NetworkOptimizer.Strategies.csproj", "{6F320C05-35AF-413C-A483-66474D5AF856}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkOptimizer.App", "src\NetworkOptimizer.App\NetworkOptimizer.App.csproj", "{7A458633-0BAF-4029-B9C2-33AB35063417}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkOptimizer.Tests", "src\NetworkOptimizer.Tests\NetworkOptimizer.Tests.csproj", "{E107908F-313F-4335-BF77-7E1EEAA4FED1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{443A0FAB-6EB7-4C93-8EB6-6475C62BA9C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{443A0FAB-6EB7-4C93-8EB6-6475C62BA9C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{443A0FAB-6EB7-4C93-8EB6-6475C62BA9C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{443A0FAB-6EB7-4C93-8EB6-6475C62BA9C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E375E672-AF9E-4BB8-B370-FA39106BD102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E375E672-AF9E-4BB8-B370-FA39106BD102}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E375E672-AF9E-4BB8-B370-FA39106BD102}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E375E672-AF9E-4BB8-B370-FA39106BD102}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE43FDC2-22B5-46F6-8A7A-16CB14F0ACA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE43FDC2-22B5-46F6-8A7A-16CB14F0ACA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE43FDC2-22B5-46F6-8A7A-16CB14F0ACA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE43FDC2-22B5-46F6-8A7A-16CB14F0ACA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F320C05-35AF-413C-A483-66474D5AF856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F320C05-35AF-413C-A483-66474D5AF856}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F320C05-35AF-413C-A483-66474D5AF856}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F320C05-35AF-413C-A483-66474D5AF856}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A458633-0BAF-4029-B9C2-33AB35063417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A458633-0BAF-4029-B9C2-33AB35063417}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A458633-0BAF-4029-B9C2-33AB35063417}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A458633-0BAF-4029-B9C2-33AB35063417}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E107908F-313F-4335-BF77-7E1EEAA4FED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E107908F-313F-4335-BF77-7E1EEAA4FED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E107908F-313F-4335-BF77-7E1EEAA4FED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E107908F-313F-4335-BF77-7E1EEAA4FED1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{443A0FAB-6EB7-4C93-8EB6-6475C62BA9C8} = {73638D93-7C51-45E3-8206-2633A61519C3}
+		{E375E672-AF9E-4BB8-B370-FA39106BD102} = {73638D93-7C51-45E3-8206-2633A61519C3}
+		{BE43FDC2-22B5-46F6-8A7A-16CB14F0ACA5} = {73638D93-7C51-45E3-8206-2633A61519C3}
+		{6F320C05-35AF-413C-A483-66474D5AF856} = {73638D93-7C51-45E3-8206-2633A61519C3}
+		{7A458633-0BAF-4029-B9C2-33AB35063417} = {73638D93-7C51-45E3-8206-2633A61519C3}
+		{E107908F-313F-4335-BF77-7E1EEAA4FED1} = {73638D93-7C51-45E3-8206-2633A61519C3}
+	EndGlobalSection
+EndGlobal
