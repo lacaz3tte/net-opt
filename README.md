@@ -1,28 +1,26 @@
 # Network Optimizer
 
-Утилита для Windows 10/11 x64, которая **сама** ищет рабочую локальную сетевую конфигурацию для доступа к YouTube и Discord.
+Утилита для Windows 10/11 x64: **одна кнопка** запускает bundled zapret (`winws` + WinDivert) и сама перебирает профили desync, пока YouTube и Discord не заработают.
 
 ```text
-Запустить NetworkOptimizer.exe
+Запустить NetworkOptimizer.exe  (UAC / от имени администратора)
         ↓
 Нажать [ AUTO DISCOVER & FIX ]
         ↓
-Программа сама: snapshot → discover → apply → test → rollback → next
+Программа сама: snapshot → winws profile → test YouTube/Discord → rollback → next
         ↓
 ✓ WORKING CONFIGURATION FOUND
 ```
 
-Пользователь **не** переключает конфигурации вручную между тестами.
+Других способов (DNS, прокси, VPN, локальный TLS-split) больше нет. Пользователь **не** выбирает профиль вручную.
 
 ## Как запустить
 
-1. Скачайте `NetworkOptimizer.exe` (папка `dist/`).
-2. Запустите файл. Устанавливать Python, Node.js, .NET Runtime или WSL **не нужно**.
+1. Скачайте `NetworkOptimizer.exe` вместе с папкой `zapret/` (после `publish` они рядом).
+2. Запустите файл. Устанавливать Python, Node.js, .NET Runtime или WSL **не нужно**. Windows покажет UAC: WinDivert требует администратора.
 3. Нажмите **AUTO DISCOVER & FIX**.
-4. Дождитесь завершения поиска.
-5. Готово: при успехе конфигурация остаётся активной.
-
-Для обхода DPI в стиле zapret/GoodbyeDPI запустите программу **от имени администратора**: тогда поиск сможет временно закрыть исходящий QUIC (UDP/443) и YouTube пойдёт по TCP через локальный desync. Драйвер WinDivert не ставится. Отключить блок QUIC: `"dpi": { "blockQuic": false }` в `config/appsettings.json`.
+4. Дождитесь завершения поиска. Fast-режим оставляет первый полный успех.
+5. Готово: `winws` остаётся запущенным с найденным профилем.
 
 CLI (то же самое без окна):
 
@@ -32,25 +30,18 @@ NetworkOptimizer.exe auto
 
 ## Что программа меняет
 
-Только настройки **этой** Windows-машины, с обязательным snapshot и rollback:
+Только DPI-обход **на этой** машине через официальный zapret `winws.exe` и драйвер WinDivert. Перед поиском делается snapshot; неуспешный профиль останавливает `winws` и пробует следующий.
 
-| Настройка | Когда меняется |
-|---|---|
-| Прокси WinINET (Internet Settings, HKCU) | Существующий HTTP/SOCKS proxy, локальные инструменты, встроенный локальный TLS-split proxy |
-| DNS активного адаптера | Только стратегия DNS и только если в `config/appsettings.json` включено `allowDnsChanges` **и** есть права администратора |
-| Metric интерфейса VPN/TUN | Только если VPN/TUN уже есть и разрешены routing-изменения + администратор |
-| Ничего | Direct, IPv4/IPv6 (проверка семейства адресов без смены системных настроек) |
+Программа **не** ставит VPN, HTTP/SOCKS-прокси, не меняет DNS и не ходит в чужие системы. Перебираются только встроенные профили desync (fake/split/multisplit/ttl и т.п.) для хостов YouTube и Discord.
 
-Программа **не** устанавливает VPN, proxy, драйверы и чужое ПО. Если инструмент не найден — стратегия получает статус `UNAVAILABLE`, поиск продолжается.
-
-Программа **не** занимается взломом чужих систем, MITM чужого трафика, DDoS или обходом чужой аутентификации.
+Бинарники zapret/WinDivert лежат в `third_party/zapret/` (MIT / LGPLv3, см. `NOTICE.txt`) и копируются в `zapret/` рядом с EXE.
 
 ## Rollback
 
-Перед каждым изменением создаётся `NetworkSnapshot`.
+Перед поиском создаётся `NetworkSnapshot`.
 
-- Неуспешный кандидат → rollback → следующий кандидат.
-- **STOP** → безопасная остановка, rollback, исходное состояние.
+- Неуспешный профиль → stop winws → следующий профиль.
+- **STOP** → безопасная остановка, winws выключается, исходное состояние.
 - Аварийное завершение → при следующем запуске:
 
 ```text
@@ -95,16 +86,16 @@ NetworkOptimizer.exe monitor --interval 60 --auto
 ## Другие команды
 
 ```text
-NetworkOptimizer.exe scan       Обнаружение интерфейсов, proxy, DNS, VPN/TUN, локальных инструментов
+NetworkOptimizer.exe scan       Обнаружение интерфейсов и проверка, что zapret/winws доступен
 NetworkOptimizer.exe test       Проверка YouTube и Discord прямо сейчас
 NetworkOptimizer.exe status     Статус, saved configuration, interrupted snapshot
-NetworkOptimizer.exe auto       Полный автоматический поиск
+NetworkOptimizer.exe auto       Полный автоматический поиск профилей zapret
 NetworkOptimizer.exe auto --best
 NetworkOptimizer.exe rollback
 NetworkOptimizer.exe monitor [--interval 60] [--auto]
 ```
 
-Режимы поиска: **Fast** (первый стабильный успех, по умолчанию) и **Best** (сравнить несколько успешных кандидатов).
+Режимы поиска: **Fast** (первый стабильный успех, по умолчанию) и **Best** (сравнить несколько успешных профилей).
 
 ## Сборка из исходников
 
@@ -119,21 +110,15 @@ dotnet test
 
 ```text
 dist/NetworkOptimizer.exe
+dist/zapret/winws.exe
+dist/zapret/WinDivert.dll
+dist/zapret/WinDivert64.sys
+dist/zapret/cygwin1.dll
+dist/zapret/files/...
 ```
 
-Это self-contained single-file `win-x64`. Native AOT не используется: WPF с ним несовместим.
+Это self-contained single-file `win-x64`. Папка `zapret/` обязана лежать рядом с EXE. Native AOT не используется: WPF с ним несовместим.
 
-## Стратегии
+## Стратегия
 
-- Direct
-- IPv4 / IPv6
-- **DPI desync (zapret / GoodbyeDPI)** — локальный CONNECT-прокси, который режет TLS ClientHello этой машины так, чтобы DPI провайдера не собрал SNI из первого пакета (split2/midsld, TLS record split, OOB, ожидание ACK). При правах администратора может временно закрыть исходящий QUIC (UDP/443), чтобы YouTube пошёл по TCP. Драйверы WinDivert не ставятся.
-- Existing HTTP/HTTPS proxy (после handshake)
-- Existing SOCKS4/SOCKS5 (после handshake)
-- Windows Proxy (WinINET / WinHTTP / HTTP_PROXY)
-- DNS (публичные резолверы, только с разрешением и обычно с UAC)
-- Existing VPN/TUN
-- Existing local tools (Clash, v2ray, Xray, sing-box, ByeDPI, GoodbyeDPI, zapret и т.п. — только если уже запущены)
-- Local TLS split proxy (запасной локальный CONNECT-прокси с разрезом ClientHello)
-
-Добавление новой стратегии не требует переписывать optimizer: реализуется `INetworkStrategy`.
+Только **zapret / winws**. AUTO DISCOVER перебирает известные профили YouTube/Discord (fake+multisplit, split2, ttl, seqovl и другие) и оставляет первый, на котором оба сервиса отвечают по HTTP.

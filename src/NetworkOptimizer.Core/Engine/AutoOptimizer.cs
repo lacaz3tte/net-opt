@@ -70,7 +70,7 @@ public sealed class AutoOptimizer
             {
                 Phase = "discover",
                 Tag = "DISC",
-                Message = "Discovering adapters, routes, proxy ports, and local tools...",
+                Message = "Preparing bundled zapret/winws profiles...",
                 Status = OperationStatus.Testing,
                 LiveProbe = currentProbe
             });
@@ -109,6 +109,35 @@ public sealed class AutoOptimizer
             var promising = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             var stage1 = _generator.Generate(_strategies, discovery, stage: 1);
+            if (stage1.Count == 0)
+            {
+                var reasons = _strategies.Select(s =>
+                {
+                    var reason = s is IDescribedStrategy d && !string.IsNullOrWhiteSpace(d.AvailabilityReason)
+                        ? d.AvailabilityReason
+                        : "UNAVAILABLE";
+                    return $"{s.Name}: {reason}";
+                }).ToArray();
+                var message = reasons.Length == 0
+                    ? "No zapret profiles to try. Original settings restored."
+                    : "zapret is unavailable. " + string.Join("; ", reasons);
+                progress?.Report(new OptimizationProgress
+                {
+                    Phase = "discover",
+                    Tag = "FAIL",
+                    Message = message,
+                    Status = OperationStatus.Unavailable
+                });
+                await SafeRestoreOriginalAsync(original);
+                return new OptimizationResult
+                {
+                    Success = false,
+                    Attempts = attempts,
+                    Discovery = discovery,
+                    Message = message
+                };
+            }
+
             progress?.Report(new OptimizationProgress
             {
                 Phase = "generate",

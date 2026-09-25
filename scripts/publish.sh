@@ -22,5 +22,13 @@ if [[ ! -f "$OUT/NetworkOptimizer.exe" ]]; then
   exit 1
 fi
 
+if [[ -d "$ROOT/third_party/zapret" ]]; then
+  rm -rf "$OUT/zapret"
+  cp -a "$ROOT/third_party/zapret" "$OUT/zapret"
+  mkdir -p "$OUT/lists"
+  cp -f "$ROOT/lists/youtube-discord.txt" "$OUT/lists/youtube-discord.txt"
+  cp -f "$ROOT/lists/youtube-discord.txt" "$OUT/zapret/files/youtube-discord.txt"
+fi
+
 ls -lh "$OUT/NetworkOptimizer.exe"
 echo "Native AOT is not used: WPF is not compatible with Native AOT."

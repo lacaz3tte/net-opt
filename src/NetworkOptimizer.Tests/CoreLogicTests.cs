@@ -47,7 +47,7 @@ public sealed class ConfigurationParsingTests
         var cfg = ConfigurationStore.Parse(json);
         Assert.Equal(5, cfg.Timeouts.ConnectSeconds);
         Assert.Equal(20, cfg.Timeouts.CandidateSeconds);
-        Assert.Equal(84, cfg.Search.MaxCandidates);
+        Assert.Equal(32, cfg.Search.MaxCandidates);
     }
 }
 
@@ -107,17 +107,6 @@ public sealed class CandidateGenerationTests
         var stage2 = gen.Generate(new INetworkStrategy[] { a, b, c }, TestEnv.SampleDiscovery(), 2);
         Assert.Single(stage2);
         Assert.Equal("a2", stage2[0].DisplayName);
-    }
-
-    [Fact]
-    public void Direct_strategy_emits_one_candidate_when_adapter_is_up()
-    {
-        var store = new FakeStore();
-        var cfg = new AppConfiguration();
-        var direct = new NetworkOptimizer.Strategies.DirectStrategy(store, cfg);
-        direct.Bind(TestEnv.SampleDiscovery());
-        Assert.True(direct.IsAvailable());
-        Assert.Single(direct.GenerateCandidates());
     }
 }
 

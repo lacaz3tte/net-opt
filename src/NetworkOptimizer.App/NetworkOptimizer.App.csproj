@@ -21,7 +21,7 @@
     <StartupObject>NetworkOptimizer.App.Program</StartupObject>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
     <ApplicationIcon />
-    <Description>Network Optimizer — automatic local network configuration search for YouTube and Discord.</Description>
+    <Description>Network Optimizer — one-button zapret/winws auto-search for YouTube and Discord.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NetworkOptimizer.Core\NetworkOptimizer.Core.csproj" />
@@ -30,6 +30,18 @@
     <ProjectReference Include="..\NetworkOptimizer.Strategies\NetworkOptimizer.Strategies.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\config\appsettings.json" Link="config\appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\config\appsettings.json" Link="config\appsettings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\third_party\zapret\**\*.*">
+      <Link>zapret\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
+    <None Include="..\..\lists\youtube-discord.txt">
+      <Link>lists\youtube-discord.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
   </ItemGroup>
 </Project>

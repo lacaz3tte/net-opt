@@ -157,12 +157,12 @@ public sealed class MainWindow : Window
         stack.Children.Add(Theme.TextBlock("WORKSPACE", 11, FontWeights.Bold, Theme.Dim, new Thickness(8, 0, 0, 10)));
         stack.Children.Add(NavItem("Overview", true));
         stack.Children.Add(Theme.TextBlock("SEARCH", 11, FontWeights.Bold, Theme.Dim, new Thickness(8, 22, 0, 10)));
-        stack.Children.Add(Theme.TextBlock("Fast mode stops at the first stable path.\nBest mode compares a few winners.", 11, FontWeights.Normal, Theme.Muted, new Thickness(8, 0, 8, 12)));
+        stack.Children.Add(Theme.TextBlock("One button. The app starts bundled zapret/winws and tries known YouTube/Discord profiles until both work.", 11, FontWeights.Normal, Theme.Muted, new Thickness(8, 0, 8, 12)));
         var modes = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 16) };
         modes.Children.Add(ModeChip("Fast", SearchMode.Fast));
         modes.Children.Add(ModeChip("Best", SearchMode.Best));
         stack.Children.Add(modes);
-        stack.Children.Add(Theme.TextBlock("Nothing is installed automatically. Missing tools stay UNAVAILABLE.", 11, FontWeights.Normal, Theme.Dim, new Thickness(8, 8, 8, 0)));
+        stack.Children.Add(Theme.TextBlock("WinDivert needs Administrator. Fast keeps the first full success.", 11, FontWeights.Normal, Theme.Dim, new Thickness(8, 8, 8, 0)));
 
         return new Border
         {
@@ -337,10 +337,10 @@ public sealed class MainWindow : Window
     {
         var stack = new StackPanel();
         stack.Children.Add(Theme.TextBlock("Overview", 22, FontWeights.SemiBold, Theme.Text, new Thickness(0, 4, 0, 6)));
-        stack.Children.Add(Theme.TextBlock("One click. The app snapshots, discovers, applies, tests, and rolls back by itself.", 13, FontWeights.Normal, Theme.Muted, new Thickness(0, 0, 0, 18)));
+        stack.Children.Add(Theme.TextBlock("Press one button. The app tries zapret desync profiles by itself until YouTube and Discord both work.", 13, FontWeights.Normal, Theme.Muted, new Thickness(0, 0, 0, 18)));
 
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 18) };
-        actions.Children.Add(Theme.RoundButton("Run Auto Discover", Theme.Run, Colors.White, async (_, _) => await _vm.StartSearchAsync(), 188));
+        actions.Children.Add(Theme.RoundButton("AUTO DISCOVER & FIX", Theme.Run, Colors.White, async (_, _) => await _vm.StartSearchAsync(), 220));
         actions.Children.Add(Theme.GhostButton("Test current path", async (_, _) => await _vm.TestCurrentAsync()));
         stack.Children.Add(actions);
 
@@ -378,7 +378,7 @@ public sealed class MainWindow : Window
             total > 0 ? $"Candidate  {_vm.Current} / {total}" : "Preparing candidates…",
             16, FontWeights.SemiBold, Theme.Run, new Thickness(0, 0, 0, 12)));
         stack.Children.Add(Theme.TextBlock(_vm.Candidate?.StrategyName ?? "Working…", 18, FontWeights.SemiBold, Theme.Text));
-        stack.Children.Add(Theme.TextBlock(_vm.Candidate?.DisplayName ?? "Watch the console for DNS / TCP / TLS / HTTP.", 13, FontWeights.Normal, Theme.Muted, new Thickness(0, 0, 0, 16)));
+        stack.Children.Add(Theme.TextBlock(_vm.Candidate?.DisplayName ?? "Watch the console — each zapret profile is tested against YouTube and Discord.", 13, FontWeights.Normal, Theme.Muted, new Thickness(0, 0, 0, 16)));
 
         var layers = new StackPanel { Margin = new Thickness(0, 0, 0, 16) };
         layers.Children.Add(LayerLine("YouTube", _vm.Live?.YouTube));
@@ -408,7 +408,7 @@ public sealed class MainWindow : Window
     }
 
     private UIElement FailedView() => ResultList("No working configuration", _vm.Message, "Try again");
-    private UIElement StoppedView() => ResultList("Stopped", _vm.Message, "Run Auto Discover");
+    private UIElement StoppedView() => ResultList("Stopped", _vm.Message, "AUTO DISCOVER & FIX");
 
     private UIElement ResultList(string title, string message, string cta)
     {

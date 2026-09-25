@@ -1,0 +1,8 @@
+This folder contains Windows binaries from:
+
+- zapret / winws — https://github.com/bol-van/zapret  (MIT)
+- zapret-win-bundle — https://github.com/bol-van/zapret-win-bundle
+- WinDivert — https://github.com/basil00/Divert  (LGPLv3)
+
+They are used only as a local DPI bypass on the machine that runs Network Optimizer.
+Do not redistribute this folder separately without the original licenses.

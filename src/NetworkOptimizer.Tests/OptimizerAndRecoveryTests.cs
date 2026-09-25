@@ -112,29 +112,6 @@ public sealed class OptimizerLoopTests
         Assert.True(store.RestoreCount >= 1);
         try { Directory.Delete(env.Root, true); } catch { /* ignore */ }
     }
-
-    [Fact]
-    public async Task Http_proxy_apply_sets_system_proxy_and_rollback_clears_it()
-    {
-        var store = new FakeStore();
-        var cfg = new AppConfiguration();
-        var strategy = new NetworkOptimizer.Strategies.ExistingHttpProxyStrategy(store, cfg);
-        strategy.Bind(new DiscoveryReport
-        {
-            LocalProxies = new[]
-            {
-                new ProxyEndpoint { Host = "127.0.0.1", Port = 8888, Kind = "http", HandshakeOk = true }
-            }
-        });
-        var candidate = strategy.GenerateCandidates().Single();
-        var apply = await strategy.ApplyAsync(candidate, CancellationToken.None);
-        Assert.True(apply.Applied);
-        Assert.True(store.Internet.Enabled);
-        Assert.Equal("127.0.0.1:8888", store.Internet.Server);
-        var rb = await strategy.RollbackAsync(CancellationToken.None);
-        Assert.True(rb.Restored);
-        Assert.False(store.Internet.Enabled);
-    }
 }
 
 public sealed class CrashAndSavedTests
@@ -148,7 +125,7 @@ public sealed class CrashAndSavedTests
         await state.SaveOriginalSnapshotAsync(snapshot, CancellationToken.None);
         await state.SavePendingAsync(new PendingOperation
         {
-            StrategyId = "dpi-local",
+            StrategyId = "zapret",
             CandidateId = "x",
             CandidateName = "split"
         }, CancellationToken.None);
@@ -167,14 +144,14 @@ public sealed class CrashAndSavedTests
         var (env, state, _) = TestEnv.Temp();
         await state.SaveWorkingAsync(new WorkingConfiguration
         {
-            StrategyId = "direct",
-            StrategyName = "Direct",
+            StrategyId = "zapret",
+            StrategyName = "zapret / winws",
             Candidate = new Candidate
             {
-                Id = "direct:default",
-                StrategyId = "direct",
-                StrategyName = "Direct",
-                DisplayName = "Direct connection"
+                Id = "zapret:fake-multisplit-md5sig-badseq",
+                StrategyId = "zapret",
+                StrategyName = "zapret / winws",
+                DisplayName = "zapret: fake + multisplit midsld + md5sig,badseq"
             }
         }, CancellationToken.None);
         var probe = new FakeProbe { Handler = _ => FakeProbe.Ok() };
@@ -191,14 +168,14 @@ public sealed class CrashAndSavedTests
         var (env, state, _) = TestEnv.Temp();
         await state.SaveWorkingAsync(new WorkingConfiguration
         {
-            StrategyId = "direct",
-            StrategyName = "Direct",
+            StrategyId = "zapret",
+            StrategyName = "zapret / winws",
             Candidate = new Candidate
             {
-                Id = "direct:default",
-                StrategyId = "direct",
-                StrategyName = "Direct",
-                DisplayName = "Direct connection"
+                Id = "zapret:fake-multisplit-md5sig-badseq",
+                StrategyId = "zapret",
+                StrategyName = "zapret / winws",
+                DisplayName = "zapret: fake + multisplit midsld + md5sig,badseq"
             }
         }, CancellationToken.None);
         var probe = new FakeProbe { Handler = _ => FakeProbe.Fail("down") };

@@ -21,6 +21,16 @@ if (-not (Test-Path $exe)) {
     throw "Publish succeeded but NetworkOptimizer.exe was not found in dist/"
 }
 
+$zapretSrc = Join-Path $root "third_party\zapret"
+$zapretDst = Join-Path $out "zapret"
+if (Test-Path $zapretSrc) {
+    if (Test-Path $zapretDst) { Remove-Item -Recurse -Force $zapretDst }
+    Copy-Item -Recurse -Force $zapretSrc $zapretDst
+    New-Item -ItemType Directory -Force -Path (Join-Path $out "lists") | Out-Null
+    Copy-Item -Force (Join-Path $root "lists\youtube-discord.txt") (Join-Path $out "lists\youtube-discord.txt")
+    Copy-Item -Force (Join-Path $root "lists\youtube-discord.txt") (Join-Path $zapretDst "files\youtube-discord.txt")
+}
+
 Get-Item $exe | ForEach-Object {
     Write-Host ("Built {0} ({1:N1} MB)" -f $_.FullName, ($_.Length / 1MB))
 }

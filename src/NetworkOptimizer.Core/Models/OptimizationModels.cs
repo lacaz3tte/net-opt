@@ -70,7 +70,7 @@ public sealed class TimeoutSettings
 public sealed class SearchSettings
 {
     public SearchMode Mode { get; set; } = SearchMode.Fast;
-    public int MaxCandidates { get; set; } = 84;
+    public int MaxCandidates { get; set; } = 32;
     public int MaxStage2PerStrategy { get; set; } = 8;
     public bool AllowDnsChanges { get; set; } = true;
     public bool AllowRoutingChanges { get; set; } = true;
@@ -83,11 +83,9 @@ public sealed class MonitorSettings
     public bool AutoRediscover { get; set; } = true;
 }
 
-public sealed class DpiSettings
+public sealed class ZapretSettings
 {
-    public bool Enabled { get; set; } = true;
-    public string ListenAddress { get; set; } = "127.0.0.1";
-    public bool BlockQuic { get; set; } = true;
+    public int StartupMilliseconds { get; set; } = 1200;
 }
 
 public sealed class AppConfiguration
@@ -95,5 +93,5 @@ public sealed class AppConfiguration
     public TimeoutSettings Timeouts { get; set; } = new();
     public SearchSettings Search { get; set; } = new();
     public MonitorSettings Monitor { get; set; } = new();
-    public DpiSettings Dpi { get; set; } = new();
+    public ZapretSettings Zapret { get; set; } = new();
 }

@@ -1,5 +1,4 @@
 using NetworkOptimizer.Core;
-using NetworkOptimizer.Network;
 
 namespace NetworkOptimizer.Strategies;
 
@@ -53,21 +52,11 @@ public sealed class StrategyCatalog
     public IReadOnlyList<INetworkStrategy> Strategies { get; }
     public IReadOnlyList<StrategyBase> Typed { get; }
 
-    public StrategyCatalog(INetworkConfigurationStore store, AppConfiguration config, IAppLog? log = null)
+    public StrategyCatalog(INetworkConfigurationStore store, AppConfiguration config, IAppLog? log = null, IZapretRuntime? zapret = null)
     {
         Typed = new StrategyBase[]
         {
-            new DirectStrategy(store, config, log),
-            new IpVersionStrategy(store, config, ipv6: false, log),
-            new IpVersionStrategy(store, config, ipv6: true, log),
-            new DpiDesyncStrategy(store, config, log),
-            new ExistingHttpProxyStrategy(store, config, log),
-            new ExistingSocksStrategy(store, config, log),
-            new WindowsProxyStrategy(store, config, log),
-            new DnsStrategy(store, config, log),
-            new ExistingVpnTunStrategy(store, config, log),
-            new LocalToolsStrategy(store, config, log),
-            new DpiResistantLocalProxyStrategy(store, config, log)
+            new ZapretStrategy(store, config, zapret ?? new WindowsZapretRuntime(log), log)
         };
         Strategies = Typed;
     }
@@ -89,21 +78,4 @@ public sealed class StrategyCatalog
             Status = s.Availability,
             Reason = s.AvailabilityReason
         }).ToArray();
-}
-
-internal static class ProxyUri
-{
-    public static Uri? TryCreate(CandidateParameters p)
-    {
-        if (string.IsNullOrWhiteSpace(p.ProxyHost) || p.ProxyPort is null or <= 0) return null;
-        var kind = (p.ProxyKind ?? "http").ToLowerInvariant();
-        var scheme = kind switch
-        {
-            "socks5" => "socks5",
-            "socks4" => "socks4",
-            "https" => "http",
-            _ => "http"
-        };
-        return new Uri($"{scheme}://{p.ProxyHost}:{p.ProxyPort}");
-    }
 }
