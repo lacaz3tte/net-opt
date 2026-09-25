@@ -16,7 +16,7 @@
 
 ## Как запустить
 
-1. Скачайте `NetworkOptimizer.exe` вместе с папкой `zapret/` (после `publish` они рядом).
+1. Берите **новую** сборку из `dist/` после `publish` (версия 1.1+): `NetworkOptimizer.exe` **и** папку `zapret/` рядом. Старый `dist/NetworkOptimizer.exe` от импорта Origin всё ещё ищет DNS/прокси/TLS-split и **не** читает `third_party/zapret`.
 2. Запустите файл. Устанавливать Python, Node.js, .NET Runtime или WSL **не нужно**. Windows покажет UAC: WinDivert требует администратора.
 3. Нажмите **AUTO DISCOVER & FIX**.
 4. Дождитесь завершения поиска. Fast-режим оставляет первый полный успех.
