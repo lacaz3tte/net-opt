@@ -35,12 +35,13 @@ public sealed class DpiResistantLocalProxyStrategy : StrategyBase
 
     public override IEnumerable<Candidate> GenerateCandidates()
     {
-        yield return Make("split-2-1", "Local TLS split (pos=2, delay=1ms)", 40, 1, new CandidateParameters
+        yield return Make("split-2-ack", "Local TLS split (pos=2, wait ACK)", 40, 1, new CandidateParameters
         {
             SplitMode = "clienthello",
             SplitPosition = 2,
-            SplitDelayMs = 1,
-            SystemWide = true
+            SplitDelayMs = 30,
+            SystemWide = true,
+            Extra = new Dictionary<string, string> { ["waitAck"] = "1" }
         });
 
         yield return Make("split-1-1", "Local TLS split (pos=1, delay=1ms)", 41, 2, new CandidateParameters
@@ -85,7 +86,8 @@ public sealed class DpiResistantLocalProxyStrategy : StrategyBase
             {
                 Mode = candidate.Parameters.SplitMode ?? "clienthello",
                 Position = candidate.Parameters.SplitPosition ?? 2,
-                DelayMs = candidate.Parameters.SplitDelayMs ?? 1
+                DelayMs = candidate.Parameters.SplitDelayMs ?? 1,
+                WaitForAck = candidate.Parameters.Extra.TryGetValue("waitAck", out var wait) && wait is "1" or "true"
             });
             _server.Start();
             var port = _server.Port;
