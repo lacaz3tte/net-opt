@@ -8,6 +8,13 @@ gvt1.com
 gvt2.com
 youtubei.googleapis.com
 yt3.ggpht.com
+yt3.googleusercontent.com
+googleusercontent.com
+youtube-nocookie.com
+youtubekids.com
+google.com
+gstatic.com
+jnn-pa.googleapis.com
 discord.com
 discordapp.com
 discord.gg

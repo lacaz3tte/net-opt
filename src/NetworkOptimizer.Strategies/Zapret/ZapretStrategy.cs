@@ -73,7 +73,7 @@ public sealed class ZapretStrategy : StrategyBase
             }
 
             Log.Info($"apply zapret {candidate.DisplayName}");
-            return ApplyResult.Ok(ProbeTransport.SystemDefault);
+            return ApplyResult.Ok(new ProbeTransport { AddressFamily = AddressFamilyPreference.IPv4 });
         }
         catch (OperationCanceledException)
         {
