@@ -16,6 +16,8 @@ public sealed class CandidateParameters
     public string? SplitMode { get; init; }
     public int? SplitPosition { get; init; }
     public int? SplitDelayMs { get; init; }
+    public string? DesyncMode { get; init; }
+    public bool BlockQuic { get; init; }
     public bool UseDoh { get; init; }
     public bool SystemWide { get; init; } = true;
     public IReadOnlyDictionary<string, string> Extra { get; init; } =
@@ -37,6 +39,8 @@ public sealed class CandidateParameters
             SplitMode ?? "",
             SplitPosition?.ToString() ?? "",
             SplitDelayMs?.ToString() ?? "",
+            DesyncMode ?? "",
+            BlockQuic ? "quicblock" : "",
             UseDoh ? "doh" : "",
             SystemWide ? "sys" : "proc",
             extra);

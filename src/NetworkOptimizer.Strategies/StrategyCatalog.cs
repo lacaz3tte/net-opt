@@ -60,6 +60,7 @@ public sealed class StrategyCatalog
             new DirectStrategy(store, config, log),
             new IpVersionStrategy(store, config, ipv6: false, log),
             new IpVersionStrategy(store, config, ipv6: true, log),
+            new DpiDesyncStrategy(store, config, log),
             new ExistingHttpProxyStrategy(store, config, log),
             new ExistingSocksStrategy(store, config, log),
             new WindowsProxyStrategy(store, config, log),

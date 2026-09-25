@@ -22,6 +22,8 @@
 4. Дождитесь завершения поиска.
 5. Готово: при успехе конфигурация остаётся активной.
 
+Для обхода DPI в стиле zapret/GoodbyeDPI запустите программу **от имени администратора**: тогда поиск сможет временно закрыть исходящий QUIC (UDP/443) и YouTube пойдёт по TCP через локальный desync. Драйвер WinDivert не ставится. Отключить блок QUIC: `"dpi": { "blockQuic": false }` в `config/appsettings.json`.
+
 CLI (то же самое без окна):
 
 ```text
@@ -125,12 +127,13 @@ dist/NetworkOptimizer.exe
 
 - Direct
 - IPv4 / IPv6
+- **DPI desync (zapret / GoodbyeDPI)** — локальный CONNECT-прокси, который режет TLS ClientHello этой машины так, чтобы DPI провайдера не собрал SNI из первого пакета (split2/midsld, TLS record split, OOB, ожидание ACK). При правах администратора может временно закрыть исходящий QUIC (UDP/443), чтобы YouTube пошёл по TCP. Драйверы WinDivert не ставятся.
 - Existing HTTP/HTTPS proxy (после handshake)
 - Existing SOCKS4/SOCKS5 (после handshake)
 - Windows Proxy (WinINET / WinHTTP / HTTP_PROXY)
 - DNS (публичные резолверы, только с разрешением и обычно с UAC)
 - Existing VPN/TUN
-- Existing local tools (Clash, v2ray, Xray, sing-box и т.п. — только если уже запущены)
-- Local TLS split proxy (локальный CONNECT-прокси на 127.0.0.1 для трафика этой машины)
+- Existing local tools (Clash, v2ray, Xray, sing-box, ByeDPI, GoodbyeDPI, zapret и т.п. — только если уже запущены)
+- Local TLS split proxy (запасной локальный CONNECT-прокси с разрезом ClientHello)
 
 Добавление новой стратегии не требует переписывать optimizer: реализуется `INetworkStrategy`.

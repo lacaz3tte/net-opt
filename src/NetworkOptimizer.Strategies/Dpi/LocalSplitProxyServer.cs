@@ -10,6 +10,13 @@ public sealed class SplitOptions
     public string Mode { get; init; } = "clienthello";
     public int Position { get; init; } = 2;
     public int DelayMs { get; init; } = 1;
+    public bool WaitForAck { get; init; }
+    public bool SniAware { get; init; }
+    public bool TlsRecordSplit { get; init; }
+    public bool OutOfBand { get; init; }
+    public bool MultiSplit { get; init; }
+    /// <summary>zapret-style split landmark: fixed, sni, sniext, midsld.</summary>
+    public string? SplitAt { get; init; }
 }
 
 /// <summary>
@@ -163,7 +170,7 @@ public sealed class LocalSplitProxyServer : IAsyncDisposable
         }
 
         await client.WriteAsync(new byte[] { 0x05, 0x00, 0x00, 0x01, 0, 0, 0, 0, 0, 0 }, ct);
-        await PipeAsync(client, remote.GetStream(), ct);
+        await PipeAsync(client, remote, ct);
     }
 
     private async Task HandleHttpAsync(NetworkStream client, byte firstByte, CancellationToken ct)
@@ -202,7 +209,7 @@ public sealed class LocalSplitProxyServer : IAsyncDisposable
 
             var ok = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\nProxy-Agent: NetworkOptimizer\r\n\r\n");
             await client.WriteAsync(ok, ct);
-            await PipeAsync(client, remote.GetStream(), ct);
+            await PipeAsync(client, remote, ct);
             return;
         }
 
@@ -227,14 +234,15 @@ public sealed class LocalSplitProxyServer : IAsyncDisposable
         }
     }
 
-    private async Task PipeAsync(NetworkStream client, NetworkStream remote, CancellationToken ct)
+    private async Task PipeAsync(NetworkStream client, TcpClient remote, CancellationToken ct)
     {
-        var up = PumpAsync(client, remote, splitTls: true, ct);
-        var down = PumpAsync(remote, client, splitTls: false, ct);
+        var remoteStream = remote.GetStream();
+        var up = PumpClientToRemoteAsync(client, remote, ct);
+        var down = PumpPlainAsync(remoteStream, client, ct);
         await Task.WhenAny(up, down);
     }
 
-    private async Task PumpAsync(NetworkStream from, NetworkStream to, bool splitTls, CancellationToken ct)
+    private async Task PumpClientToRemoteAsync(NetworkStream from, TcpClient remote, CancellationToken ct)
     {
         var buffer = new byte[16 * 1024];
         var first = true;
@@ -254,39 +262,78 @@ public sealed class LocalSplitProxyServer : IAsyncDisposable
 
             try
             {
-                if (first && splitTls && ShouldSplit(buffer, n))
+                if (first)
                 {
-                    var pos = Math.Clamp(_options.Position, 1, Math.Max(1, n - 1));
-                    await to.WriteAsync(buffer.AsMemory(0, pos), ct);
-                    await to.FlushAsync(ct);
-                    if (_options.DelayMs > 0)
-                    {
-                        await Task.Delay(_options.DelayMs, ct);
-                    }
-
-                    await to.WriteAsync(buffer.AsMemory(pos, n - pos), ct);
-                    await to.FlushAsync(ct);
+                    n = await AccumulateFirstRecordAsync(from, buffer, n, ct);
+                    await DpiDesyncSender.SendAsync(remote.Client, buffer.AsMemory(0, n), _options, ct);
+                    first = false;
                 }
                 else
                 {
-                    await to.WriteAsync(buffer.AsMemory(0, n), ct);
+                    await remote.Client.SendAsync(buffer.AsMemory(0, n), SocketFlags.None, ct);
                 }
             }
             catch
             {
                 break;
             }
-
-            first = false;
         }
     }
 
-    private bool ShouldSplit(byte[] buffer, int length)
+    private static async Task PumpPlainAsync(NetworkStream from, NetworkStream to, CancellationToken ct)
     {
-        if (_options.Mode.Equals("none", StringComparison.OrdinalIgnoreCase)) return false;
-        if (length < 6) return false;
-        // TLS handshake record: 0x16 0x03 0x01-0x04
-        return buffer[0] == 0x16 && buffer[1] == 0x03;
+        var buffer = new byte[16 * 1024];
+        while (!ct.IsCancellationRequested)
+        {
+            int n;
+            try
+            {
+                n = await from.ReadAsync(buffer.AsMemory(0, buffer.Length), ct);
+            }
+            catch
+            {
+                break;
+            }
+
+            if (n <= 0) break;
+            try
+            {
+                await to.WriteAsync(buffer.AsMemory(0, n), ct);
+            }
+            catch
+            {
+                break;
+            }
+        }
+    }
+
+    private static async Task<int> AccumulateFirstRecordAsync(NetworkStream from, byte[] buffer, int already, CancellationToken ct)
+    {
+        var n = already;
+        var deadline = DateTime.UtcNow.AddMilliseconds(80);
+        while (!TlsClientHello.HasCompleteRecord(buffer.AsSpan(0, n)) && n < buffer.Length && DateTime.UtcNow < deadline)
+        {
+            using var slice = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            slice.CancelAfter(40);
+            int extra;
+            try
+            {
+                extra = await from.ReadAsync(buffer.AsMemory(n, buffer.Length - n), slice.Token);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                break;
+            }
+            catch
+            {
+                break;
+            }
+
+            if (extra <= 0) break;
+            n += extra;
+        }
+
+        return n;
     }
 
     private static async Task<int> ReadAtLeastAsync(NetworkStream stream, byte[] buffer, int count, CancellationToken ct)
