@@ -70,7 +70,7 @@ public sealed class TimeoutSettings
 public sealed class SearchSettings
 {
     public SearchMode Mode { get; set; } = SearchMode.Fast;
-    public int MaxCandidates { get; set; } = 32;
+    public int MaxCandidates { get; set; } = 48;
     public int MaxStage2PerStrategy { get; set; } = 8;
     public bool AllowDnsChanges { get; set; } = true;
     public bool AllowRoutingChanges { get; set; } = true;

@@ -17,10 +17,14 @@ public sealed class ZapretTests
         Assert.Contains(profiles, p => p.Arguments.Any(a => a.Contains("midsld")));
         Assert.Contains(profiles, p => p.Arguments.Any(a => a.StartsWith("--dpi-desync=fake,split2")));
         Assert.Contains(profiles, p => p.Arguments.Any(a => a.Contains("md5sig,badseq")));
-        Assert.All(profiles, p => Assert.Contains(p.Arguments, a => a.StartsWith("--hostlist=")));
-        Assert.All(profiles, p => Assert.Contains("--wf-tcp=80,443", p.Arguments));
+        Assert.Contains(profiles, p => p.Arguments.Any(a => a.StartsWith("--dpi-desync-fake-tls=")));
+        Assert.Contains(profiles, p => p.Arguments.Any(a => a.StartsWith("--wssize=")));
+        Assert.Contains(profiles, p => p.Arguments.Any(a => a.Contains("fakedsplit")));
+        Assert.Contains(profiles, p => p.Arguments.Any(a => a.Contains("syndata")));
+        Assert.Contains(profiles, p => p.Id.StartsWith("all443"));
         Assert.Contains(profiles, p => p.Arguments.Any(a => a.Contains("quic.bin")));
         Assert.Contains(profiles, p => p.Arguments.Any(a => a.Contains("tls.bin")));
+        Assert.Contains("--wf-tcp=80,443", profiles[0].Arguments);
     }
 
     [Fact]
@@ -33,6 +37,7 @@ public sealed class ZapretTests
         var candidate = strategy.GenerateCandidates().First();
         var apply = await strategy.ApplyAsync(candidate, CancellationToken.None);
         Assert.True(apply.Applied);
+        Assert.Equal(AddressFamilyPreference.IPv4, apply.Transport.AddressFamily);
         Assert.Equal(1, runtime.StartCount);
         Assert.NotEmpty(runtime.LastArgs);
         Assert.Contains(runtime.LastArgs, a => a.StartsWith("--dpi-desync="));

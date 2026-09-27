@@ -77,7 +77,7 @@ public sealed class ConfigurationStore
         cfg.Timeouts.CandidateSeconds = Clamp(cfg.Timeouts.CandidateSeconds, 5, 120, 20);
         cfg.Timeouts.StabilizationMilliseconds = Clamp(cfg.Timeouts.StabilizationMilliseconds, 0, 10_000, 800);
         cfg.Timeouts.HandshakeMilliseconds = Clamp(cfg.Timeouts.HandshakeMilliseconds, 100, 5_000, 800);
-        cfg.Search.MaxCandidates = Clamp(cfg.Search.MaxCandidates, 1, 500, 32);
+        cfg.Search.MaxCandidates = Clamp(cfg.Search.MaxCandidates, 1, 500, 48);
         cfg.Search.MaxStage2PerStrategy = Clamp(cfg.Search.MaxStage2PerStrategy, 0, 50, 8);
         cfg.Search.RepeatSuccessProbes = Clamp(cfg.Search.RepeatSuccessProbes, 1, 5, 2);
         cfg.Monitor.IntervalSeconds = Clamp(cfg.Monitor.IntervalSeconds, 5, 3600, 60);

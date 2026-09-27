@@ -47,7 +47,7 @@ public sealed class ConfigurationParsingTests
         var cfg = ConfigurationStore.Parse(json);
         Assert.Equal(5, cfg.Timeouts.ConnectSeconds);
         Assert.Equal(20, cfg.Timeouts.CandidateSeconds);
-        Assert.Equal(32, cfg.Search.MaxCandidates);
+        Assert.Equal(48, cfg.Search.MaxCandidates);
     }
 }
 

@@ -16,7 +16,7 @@
 
 ## Как запустить
 
-1. Берите **новую** сборку из `dist/` после `publish` (версия 1.1+): `NetworkOptimizer.exe` **и** папку `zapret/` рядом. Старый `dist/NetworkOptimizer.exe` от импорта Origin всё ещё ищет DNS/прокси/TLS-split и **не** читает `third_party/zapret`.
+1. Берите **новую** сборку из `dist/` после `publish` (версия **1.2+**): `NetworkOptimizer.exe` **и** папку `zapret/` рядом. Старый exe ищет DNS/split либо старый набор профилей без fake-tls/wssize.
 2. Запустите файл. Устанавливать Python, Node.js, .NET Runtime или WSL **не нужно**. Windows покажет UAC: WinDivert требует администратора.
 3. Нажмите **AUTO DISCOVER & FIX**.
 4. Дождитесь завершения поиска. Fast-режим оставляет первый полный успех.
@@ -121,4 +121,4 @@ dist/zapret/files/...
 
 ## Стратегия
 
-Только **zapret / winws**. AUTO DISCOVER перебирает известные профили YouTube/Discord (fake+multisplit, split2, ttl, seqovl и другие) и оставляет первый, на котором оба сервиса отвечают по HTTP.
+Только **zapret / winws**. AUTO DISCOVER перебирает профили YouTube/Discord: fake-tls payload, wssize, fakedsplit/syndata, all-443, seqovl, ttl, ipfrag2 QUIC и другие. Fast оставляет первый, на котором оба сервиса отвечают по HTTP. Пробы идут по IPv4 (типичный ТСПУ).
