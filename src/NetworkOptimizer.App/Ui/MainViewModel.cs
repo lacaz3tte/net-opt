@@ -41,6 +41,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private bool _busy;
     private SearchMode _mode;
     private DateTime _busyStarted;
+    private CandidateAttempt? _activateAfterStop;
 
     public MainViewModel(AppServices services)
     {
@@ -53,6 +54,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public event EventHandler? StatusTick;
 
     public ObservableCollection<ActivityEntry> Activity { get; } = new();
+    public ObservableCollection<CandidateAttempt> Attempts { get; } = new();
 
     public UiScreen Screen { get => _screen; private set { _screen = value; } }
     public string Phase { get => _phase; private set => _phase = value; }
@@ -100,6 +102,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         var dc = IdleProbe?.DiscordOk == true ? "OK" : "down";
         Append("TEST", $"Current path — YouTube {yt} · Discord {dc}");
 
+        foreach (var savedAttempt in await _services.State.LoadAttemptsAsync(CancellationToken.None))
+        {
+            Attempts.Add(savedAttempt);
+        }
+
         var saved = await _services.Saved.CheckAsync(CancellationToken.None);
         if (saved.Present && saved.Working)
         {
@@ -108,13 +115,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Message = "Saved configuration is working.";
             Append("OK", $"Saved configuration still works: {Working?.Candidate.DisplayName}");
         }
-        else if (saved.Present && !saved.Working)
+        else if (saved.Present)
         {
-            Message = "Saved configuration failed. Starting automatic rediscovery...";
-            Append("FAIL", "Saved configuration is down. Starting AUTO DISCOVER.");
-            Raise();
-            await StartSearchAsync();
-            return;
+            Working = null;
+            Message = "Saved profile is not fully up. Enable it from the list, or run AUTO DISCOVER.";
+            Append("FAIL", Message);
         }
 
         Raise();
@@ -130,9 +135,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         Total = 0;
         Candidate = null;
         Live = null;
-        Message = "Creating network snapshot...";
+        _activateAfterStop = null;
+        Attempts.Clear();
+        Message = $"Creating network snapshot...  ·  mode {_mode}";
         Activity.Clear();
-        Append("RUN", "AUTO DISCOVER & FIX started");
+        Append("RUN", $"AUTO DISCOVER started ({_mode})");
         Raise();
         _cts = new CancellationTokenSource();
         var progress = new Progress<OptimizationProgress>(p =>
@@ -150,7 +157,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Candidate = p.Candidate ?? Candidate;
             Live = p.LiveProbe ?? Live;
             var tag = string.IsNullOrWhiteSpace(p.Tag) ? TagFromPhase(p.Phase) : p.Tag;
-            if (!string.IsNullOrWhiteSpace(p.Message))
+            if (p.CompletedAttempt is { } done && Attempts.All(a => a.Index != done.Index || a.Candidate.Id != done.Candidate.Id))
+            {
+                Attempts.Insert(0, done);
+                PersistAttempts();
+            }
+
+            if (!string.IsNullOrWhiteSpace(p.Message) && p.Phase != "probe-step")
             {
                 Append(tag, p.Message);
             }
@@ -169,7 +182,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             var result = await _services.Optimizer.RunAsync(progress, _cts.Token);
             LastResult = result;
-            if (result.Success)
+            var picked = _activateAfterStop;
+            _activateAfterStop = null;
+            if (picked is not null)
+            {
+                await ActivateCoreAsync(picked);
+            }
+            else if (result.Success)
             {
                 Working = new WorkingConfiguration
                 {
@@ -211,6 +230,34 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Busy = false;
             _cts.Dispose();
             _cts = null;
+            Raise();
+        }
+    }
+
+    public async Task UseAttemptAsync(CandidateAttempt attempt)
+    {
+        var usable = attempt.Probe?.YouTubeOk == true || attempt.Probe?.DiscordOk == true;
+        if (!usable) return;
+        if (Busy)
+        {
+            if (_cts is null) return;
+            _activateAfterStop = attempt;
+            Message = $"Stopping search to enable {attempt.Candidate.DisplayName}";
+            Append("APPLY", Message);
+            Raise();
+            _cts?.Cancel();
+            return;
+        }
+
+        Busy = true;
+        Raise();
+        try
+        {
+            await ActivateCoreAsync(attempt);
+        }
+        finally
+        {
+            Busy = false;
             Raise();
         }
     }
@@ -351,6 +398,64 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         Activity.Clear();
         Append("INFO", "Console cleared.");
+    }
+
+    private async Task ActivateCoreAsync(CandidateAttempt attempt)
+    {
+        var strategy = _services.Catalog.Strategies.FirstOrDefault(s => s.Id == attempt.Candidate.StrategyId);
+        if (strategy is null)
+        {
+            Message = "That profile is no longer available.";
+            Append("FAIL", Message);
+            Screen = Attempts.Count > 0 ? UiScreen.Failed : UiScreen.Idle;
+            return;
+        }
+
+        Message = $"Enabling {attempt.Candidate.DisplayName}";
+        Append("APPLY", Message);
+        Raise();
+        var apply = await strategy.ApplyAsync(attempt.Candidate, CancellationToken.None);
+        if (!apply.Applied)
+        {
+            Message = apply.Reason ?? "Could not enable this profile.";
+            Append("FAIL", Message);
+            Screen = UiScreen.Failed;
+            return;
+        }
+
+        var ytOk = attempt.Probe?.YouTubeOk == true;
+        var dcOk = attempt.Probe?.DiscordOk == true;
+        Working = new WorkingConfiguration
+        {
+            StrategyId = attempt.Candidate.StrategyId,
+            StrategyName = attempt.Candidate.StrategyName,
+            Candidate = attempt.Candidate,
+            YouTubeLatencyMs = attempt.Probe?.YouTube.TotalMs ?? 0,
+            DiscordLatencyMs = attempt.Probe?.Discord.TotalMs ?? 0,
+            Score = attempt.Score.Total
+        };
+        await _services.State.SaveWorkingAsync(Working, CancellationToken.None);
+        Live = attempt.Probe;
+        IdleProbe = attempt.Probe;
+        Screen = UiScreen.Success;
+        Message = ytOk && dcOk
+            ? "Both YouTube and Discord are up on this profile."
+            : dcOk
+                ? "Discord is up. YouTube is still down on this profile."
+                : "YouTube is up. Discord is still down on this profile.";
+        Append("OK", $"{attempt.Candidate.DisplayName} — {Message}");
+    }
+
+    private void PersistAttempts()
+    {
+        try
+        {
+            _services.State.SaveAttemptsAsync(Attempts.ToArray(), CancellationToken.None).GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // the live list still works for this session
+        }
     }
 
     private async Task RefreshIdleAsync()

@@ -33,8 +33,10 @@ public sealed class OptimizerLoopTests
             return call == 1 ? FakeProbe.Fail("down") : FakeProbe.Ok();
         };
 
+        var seen = new List<OptimizationProgress>();
         var optimizer = Create(new[] { strategy }, probe, store, state, cfg);
-        var result = await optimizer.RunAsync(null, CancellationToken.None);
+        var result = await optimizer.RunAsync(new SyncProgress(seen), CancellationToken.None);
+        Assert.Contains(seen, p => p.Phase == "attempt" && p.CompletedAttempt is not null);
         Assert.True(result.Success);
         Assert.Equal("winner", result.WinningCandidate!.DisplayName);
         Assert.Equal(1, strategy.ApplyCount);
@@ -223,6 +225,13 @@ public sealed class MonitorTests
         Assert.NotNull(await state.LoadWorkingAsync(CancellationToken.None));
         try { Directory.Delete(env.Root, true); } catch { /* ignore */ }
     }
+}
+
+internal sealed class SyncProgress : IProgress<OptimizationProgress>
+{
+    private readonly List<OptimizationProgress> _items;
+    public SyncProgress(List<OptimizationProgress> items) => _items = items;
+    public void Report(OptimizationProgress value) => _items.Add(value);
 }
 
 internal sealed class StubDiscovery : IDiscoveryService

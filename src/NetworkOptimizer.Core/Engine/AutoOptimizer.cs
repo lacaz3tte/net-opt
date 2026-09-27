@@ -167,6 +167,21 @@ public sealed class AutoOptimizer
                         progress,
                         cancellationToken);
                     attempts.Add(attempt);
+                    var yt = attempt.Probe?.YouTubeOk == true ? "ok" : "fail";
+                    var dc = attempt.Probe?.DiscordOk == true ? "ok" : "fail";
+                    progress?.Report(new OptimizationProgress
+                    {
+                        Phase = "attempt",
+                        Tag = attempt.Result == OperationStatus.Success ? "OK" :
+                            attempt.Result == OperationStatus.Partial ? "PART" : "FAIL",
+                        CurrentIndex = index,
+                        Total = totalEstimate,
+                        Candidate = candidate,
+                        LiveProbe = attempt.Probe,
+                        Status = attempt.Result,
+                        Message = $"{index}. {candidate.DisplayName} — {attempt.Result.ToLabel()}  YT {yt}  DC {dc}",
+                        CompletedAttempt = attempt
+                    });
 
                     if (attempt.Result == OperationStatus.Failed || attempt.Result == OperationStatus.Timeout ||
                         attempt.Result == OperationStatus.Unavailable)

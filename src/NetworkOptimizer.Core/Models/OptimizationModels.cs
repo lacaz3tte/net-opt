@@ -24,6 +24,7 @@ public sealed class OptimizationProgress
     public CombinedProbeResult? LiveProbe { get; init; }
     public OperationStatus Status { get; init; }
     public string Message { get; init; } = "";
+    public CandidateAttempt? CompletedAttempt { get; init; }
 }
 
 public sealed class OptimizationResult
