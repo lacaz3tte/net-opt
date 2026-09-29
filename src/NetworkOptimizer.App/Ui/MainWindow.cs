@@ -19,6 +19,8 @@ public sealed class MainWindow : Window
     private readonly TextBlock _elapsedLabel = new();
     private readonly ProgressBar _progress = new();
     private readonly StackPanel _servicePills = new();
+    private readonly StackPanel _modeChips = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 8) };
+    private readonly TextBlock _modeHint = new();
     private readonly DispatcherTimer _clock;
     private bool _templateHooked;
 
@@ -157,12 +159,15 @@ public sealed class MainWindow : Window
         stack.Children.Add(Theme.TextBlock("WORKSPACE", 11, FontWeights.Bold, Theme.Dim, new Thickness(8, 0, 0, 10)));
         stack.Children.Add(NavItem("Overview", true));
         stack.Children.Add(Theme.TextBlock("SEARCH", 11, FontWeights.Bold, Theme.Dim, new Thickness(8, 22, 0, 10)));
-        stack.Children.Add(Theme.TextBlock("One button. The app starts bundled zapret/winws and tries known YouTube/Discord profiles until both work.", 11, FontWeights.Normal, Theme.Muted, new Thickness(8, 0, 8, 12)));
-        var modes = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 16) };
-        modes.Children.Add(ModeChip("Fast", SearchMode.Fast));
-        modes.Children.Add(ModeChip("Best", SearchMode.Best));
-        stack.Children.Add(modes);
-        stack.Children.Add(Theme.TextBlock("WinDivert needs Administrator. Fast keeps the first full success.", 11, FontWeights.Normal, Theme.Dim, new Thickness(8, 8, 8, 0)));
+        _modeHint.FontSize = 11;
+        _modeHint.Foreground = Theme.Brush(Theme.Muted);
+        _modeHint.FontFamily = Theme.UiFont;
+        _modeHint.TextWrapping = TextWrapping.Wrap;
+        _modeHint.Margin = new Thickness(8, 0, 8, 10);
+        stack.Children.Add(_modeChips);
+        stack.Children.Add(_modeHint);
+        stack.Children.Add(Theme.TextBlock("WinDivert needs Administrator. Enable turns on the row you pick, even if only Discord works.", 11, FontWeights.Normal, Theme.Dim, new Thickness(8, 8, 8, 0)));
+        RefreshModes();
 
         return new Border
         {
@@ -320,6 +325,7 @@ public sealed class MainWindow : Window
 
     private void RefreshChrome()
     {
+        RefreshModes();
         RefreshHeaderOnly();
         _workspace.Content = _vm.Screen switch
         {
@@ -349,6 +355,11 @@ public sealed class MainWindow : Window
         meta.Children.Add(Kv("Candidates tested", _vm.CandidatesTested.ToString()));
         meta.Children.Add(Kv("Search mode", _vm.Mode.ToString()));
         stack.Children.Add(Theme.Card(meta));
+        if (_vm.Attempts.Count > 0)
+        {
+            stack.Children.Add(Theme.TextBlock("Profiles from the last search. Enable switches winws to that row.", 12, FontWeights.Normal, Theme.Muted, new Thickness(0, 4, 0, 8)));
+            stack.Children.Add(AttemptList());
+        }
         return stack;
     }
 
@@ -375,7 +386,7 @@ public sealed class MainWindow : Window
         stack.Children.Add(Theme.TextBlock("Automatic discovery", 22, FontWeights.SemiBold, Theme.Text, new Thickness(0, 4, 0, 8)));
         var total = Math.Max(_vm.Total, _vm.Current);
         stack.Children.Add(Theme.TextBlock(
-            total > 0 ? $"Candidate  {_vm.Current} / {total}" : "Preparing candidates…",
+            total > 0 ? $"Candidate  {_vm.Current} / {total}   ·   {_vm.Mode}" : $"Preparing candidates…   ·   {_vm.Mode}",
             16, FontWeights.SemiBold, Theme.Run, new Thickness(0, 0, 0, 12)));
         stack.Children.Add(Theme.TextBlock(_vm.Candidate?.StrategyName ?? "Working…", 18, FontWeights.SemiBold, Theme.Text));
         stack.Children.Add(Theme.TextBlock(_vm.Candidate?.DisplayName ?? "Watch the console — each zapret profile is tested against YouTube and Discord.", 13, FontWeights.Normal, Theme.Muted, new Thickness(0, 0, 0, 16)));
@@ -386,14 +397,16 @@ public sealed class MainWindow : Window
         stack.Children.Add(Theme.Card(layers));
 
         stack.Children.Add(Theme.RoundButton("Stop & restore", Theme.Danger, Colors.White, async (_, _) => await _vm.StopAsync(), 160));
-        stack.Children.Add(Theme.TextBlock("Live output is in the console below. If a candidate hangs, it times out and the next one starts.", 12, FontWeights.Normal, Theme.Dim, new Thickness(0, 12, 0, 0)));
+        stack.Children.Add(Theme.TextBlock("Each finished profile appears below immediately. Enable keeps that one and stops the search.", 12, FontWeights.Normal, Theme.Dim, new Thickness(0, 12, 0, 8)));
+        stack.Children.Add(AttemptList());
         return stack;
     }
 
     private UIElement SuccessView()
     {
         var stack = new StackPanel();
-        stack.Children.Add(Theme.TextBlock("Working configuration found", 22, FontWeights.SemiBold, Theme.Success, new Thickness(0, 4, 0, 10)));
+        stack.Children.Add(Theme.TextBlock("Profile enabled", 22, FontWeights.SemiBold, Theme.Success, new Thickness(0, 4, 0, 8)));
+        stack.Children.Add(Theme.TextBlock(_vm.Message, 13, FontWeights.Normal, Theme.Muted, new Thickness(0, 0, 0, 8)));
         stack.Children.Add(Theme.TextBlock(_vm.Working?.Candidate.DisplayName ?? _vm.Candidate?.DisplayName ?? "—", 16, FontWeights.SemiBold, Theme.Text, new Thickness(0, 0, 0, 16)));
         var lat = new StackPanel();
         lat.Children.Add(Kv("YouTube latency", $"{_vm.Live?.YouTube.TotalMs ?? _vm.Working?.YouTubeLatencyMs ?? 0} ms"));
@@ -404,10 +417,11 @@ public sealed class MainWindow : Window
         row.Children.Add(Theme.GhostButton("Restore original", async (_, _) => await _vm.RestoreOriginalAsync()));
         row.Children.Add(Theme.GhostButton("Monitor", async (_, _) => await _vm.StartMonitorAsync()));
         stack.Children.Add(row);
+        stack.Children.Add(AttemptList());
         return stack;
     }
 
-    private UIElement FailedView() => ResultList("No working configuration", _vm.Message, "Try again");
+    private UIElement FailedView() => ResultList("No profile with both services", _vm.Message, "Try again");
     private UIElement StoppedView() => ResultList("Stopped", _vm.Message, "AUTO DISCOVER & FIX");
 
     private UIElement ResultList(string title, string message, string cta)
@@ -415,23 +429,8 @@ public sealed class MainWindow : Window
         var stack = new StackPanel();
         stack.Children.Add(Theme.TextBlock(title, 22, FontWeights.SemiBold, Theme.Text, new Thickness(0, 4, 0, 8)));
         stack.Children.Add(Theme.TextBlock(message, 13, FontWeights.Normal, Theme.Muted, new Thickness(0, 0, 0, 12)));
-        var panel = new StackPanel();
-        if (_vm.LastResult is null || _vm.LastResult.Attempts.Count == 0)
-        {
-            panel.Children.Add(Theme.TextBlock("No candidates were fully tested.", 12, FontWeights.Normal, Theme.Dim));
-        }
-        else
-        {
-            foreach (var attempt in _vm.LastResult.Attempts.TakeLast(10).Reverse())
-            {
-                var line = $"{attempt.Index}. {attempt.Candidate.DisplayName}  —  {attempt.Result.ToLabel()}";
-                if (attempt.Probe is not null)
-                    line += $"   YT {(attempt.Probe.YouTubeOk ? "ok" : "fail")}  DC {(attempt.Probe.DiscordOk ? "ok" : "fail")}";
-                panel.Children.Add(Theme.TextBlock(line, 12, FontWeights.Normal, Theme.Muted, new Thickness(0, 2, 0, 2)));
-            }
-        }
-
-        stack.Children.Add(Theme.Card(panel));
+        stack.Children.Add(Theme.TextBlock("Enable turns on a row where Discord or YouTube already answered. You can switch again later.", 12, FontWeights.Normal, Theme.Dim, new Thickness(0, 0, 0, 8)));
+        stack.Children.Add(AttemptList());
         var row = new StackPanel { Orientation = Orientation.Horizontal };
         row.Children.Add(Theme.RoundButton(cta, Theme.Run, Colors.White, async (_, _) => await _vm.StartSearchAsync()));
         row.Children.Add(Theme.GhostButton("Back", (_, _) => _vm.KeepConfiguration()));
@@ -492,6 +491,67 @@ public sealed class MainWindow : Window
         };
     }
 
+    private void RefreshModes()
+    {
+        _modeChips.Children.Clear();
+        _modeChips.Children.Add(ModeChip("Fast", SearchMode.Fast));
+        _modeChips.Children.Add(ModeChip("Best", SearchMode.Best));
+        _modeHint.Text = _vm.Mode == SearchMode.Fast
+            ? "Fast is on. Search stops at the first profile where YouTube and Discord both work."
+            : "Best is on. Search tries every profile, then keeps the strongest full success.";
+    }
+
+    private UIElement AttemptList()
+    {
+        var panel = new StackPanel();
+        if (_vm.Attempts.Count == 0)
+        {
+            panel.Children.Add(Theme.TextBlock("No finished profiles yet.", 12, FontWeights.Normal, Theme.Dim));
+            return Theme.Card(panel);
+        }
+
+        foreach (var attempt in _vm.Attempts)
+        {
+            panel.Children.Add(AttemptRow(attempt));
+        }
+
+        return Theme.Card(panel);
+    }
+
+    private UIElement AttemptRow(CandidateAttempt attempt)
+    {
+        var yt = attempt.Probe?.YouTubeOk == true;
+        var dc = attempt.Probe?.DiscordOk == true;
+        var usable = yt || dc;
+        var active = _vm.Working?.Candidate.Id == attempt.Candidate.Id && _vm.Screen == UiScreen.Success;
+        var row = new Grid { Margin = new Thickness(0, 3, 0, 3) };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var text = $"{attempt.Index}. {attempt.Candidate.DisplayName}   {attempt.Result.ToLabel()}   YT {(yt ? "ok" : "fail")}   DC {(dc ? "ok" : "fail")}";
+        if (active) text = "ON   " + text;
+        var color = yt && dc ? Theme.Success : usable ? Theme.Warn : Theme.Muted;
+        var label = new TextBlock
+        {
+            Text = text,
+            FontFamily = Theme.MonoFont,
+            FontSize = 12,
+            Foreground = Theme.Brush(color),
+            TextWrapping = TextWrapping.Wrap,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        Grid.SetColumn(label, 0);
+        row.Children.Add(label);
+        if (usable && !active)
+        {
+            var button = Theme.GhostButton("Enable", async (_, _) => await _vm.UseAttemptAsync(attempt), 88);
+            Grid.SetColumn(button, 1);
+            row.Children.Add(button);
+        }
+
+        return row;
+    }
+
     private Border ModeChip(string label, SearchMode mode)
     {
         var selected = _vm.Mode == mode;
@@ -512,7 +572,7 @@ public sealed class MainWindow : Window
             }
         };
         WindowChrome.SetIsHitTestVisibleInChrome(border, true);
-        border.MouseLeftButtonUp += (_, _) => { _vm.Mode = mode; RefreshChrome(); };
+        border.MouseLeftButtonUp += (_, _) => _vm.Mode = mode;
         return border;
     }
 

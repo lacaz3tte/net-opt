@@ -10,6 +10,7 @@ public sealed class AppEnvironment
     public string WorkingFile => Path.Combine(StateDir, "working.json");
     public string PendingFile => Path.Combine(StateDir, "pending-operation.json");
     public string OriginalSnapshotFile => Path.Combine(StateDir, "original-snapshot.json");
+    public string AttemptsFile => Path.Combine(StateDir, "attempts.json");
 
     public AppEnvironment(string? root = null)
     {

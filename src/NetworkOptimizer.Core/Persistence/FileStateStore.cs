@@ -52,6 +52,15 @@ public sealed class FileStateStore : IStateStore
         return Task.CompletedTask;
     }
 
+    public Task SaveAttemptsAsync(IReadOnlyList<CandidateAttempt> attempts, CancellationToken ct) =>
+        WriteAsync(_env.AttemptsFile, attempts, ct);
+
+    public async Task<IReadOnlyList<CandidateAttempt>> LoadAttemptsAsync(CancellationToken ct)
+    {
+        var loaded = await ReadAsync<List<CandidateAttempt>>(_env.AttemptsFile, ct);
+        return loaded ?? new List<CandidateAttempt>();
+    }
+
     private static async Task WriteAsync<T>(string path, T value, CancellationToken ct)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);

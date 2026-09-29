@@ -76,6 +76,8 @@ public interface IStateStore
     Task SaveWorkingAsync(WorkingConfiguration working, CancellationToken ct);
     Task<WorkingConfiguration?> LoadWorkingAsync(CancellationToken ct);
     Task ClearWorkingAsync(CancellationToken ct);
+    Task SaveAttemptsAsync(IReadOnlyList<CandidateAttempt> attempts, CancellationToken ct);
+    Task<IReadOnlyList<CandidateAttempt>> LoadAttemptsAsync(CancellationToken ct);
 }
 
 public sealed class StrategyAvailability
